@@ -1,0 +1,9 @@
+---
+# This playbook builds the WebUI 2.0
+
+- name: apply common configuration to all nodes
+  hosts: all
+  remote_user: root
+
+  roles:
+    - common

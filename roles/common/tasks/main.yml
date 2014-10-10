@@ -1,0 +1,46 @@
+---
+
+- name: update debian packages
+  apt: update_cache=true
+
+- name: ensure nginx is installed
+  apt: pkg=nginx state=installed
+  tags: nginx
+
+- name: ensure git is installed
+  apt: pkg=git state=installed
+  tags: git
+
+- name: ensure openjdk-7-jdk is installed
+  apt: pkg=openjdk-7-jdk state=installed
+  tags: openjdk-7-jdk
+
+- name: install memcached
+  apt: name=memcached state=present
+
+- name: ensure /var/www exists
+  file: path=/var/www mode=644 owner=root group=root state=directory
+
+- name: remove old site
+  file: path=/var/www/landing state=absent
+
+- name: copy site to server
+  unarchive: src=landing.tar.gz dest=/var/www
+
+- name: Ensure proper permissions on /var/www
+  file: path=/var/www mode=755 owner=root group=root state=directory recurse=yes
+
+- name: copy nginx.conf to the server
+  copy: src=nginx/nginx.conf dest=/etc/nginx/nginx.conf
+  notify: restart nginx
+
+- name: copy 6thdigital sites-available conf to the server
+  copy: src=nginx/6thdigital dest=/etc/nginx/sites-available/6thdigital
+  notify: restart nginx
+
+- name: remove nginx default server conf
+  file: dest=/etc/nginx/sites-enabled/default state=absent
+
+- name: Create symlink to 6thdigital nginx server conf
+  file: src=/etc/nginx/sites-available/6thdigital dest=/etc/nginx/sites-enabled/6thdigital state=link
+  notify: restart nginx
